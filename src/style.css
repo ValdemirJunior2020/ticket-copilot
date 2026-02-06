@@ -449,3 +449,64 @@ hr{
 }
 .tc-riskName{font-weight:800;margin-bottom:2px}
 .tc-riskDesc{opacity:.85;font-size:12px;line-height:1.25}
+/* ADD THESE (or replace your existing actions/button styles with these) */
+
+/* keep the bar stable */
+.tc-actionsBar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+}
+
+.tc-actionsLeft{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width: 320px;
+}
+
+.tc-actionsRight{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  flex-wrap:wrap;
+  min-width: 380px;
+}
+
+/* keep status from pushing buttons around */
+.tc-status{
+  min-width: 140px;
+  white-space: nowrap;
+}
+
+/* lock OpenAI button width so text/spinner never moves layout */
+.tc-openaiBtn{
+  min-width: 180px;
+  position: relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+
+/* spinner hidden unless loading */
+.tc-openaiSpinner{
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.35);
+  border-top-color: rgba(255,255,255,.95);
+  display: none;
+  animation: tcspin .8s linear infinite;
+}
+
+.tc-openaiBtn.is-loading .tc-openaiSpinner{
+  display: inline-block;
+}
+
+@keyframes tcspin{
+  to{ transform: rotate(360deg); }
+}
