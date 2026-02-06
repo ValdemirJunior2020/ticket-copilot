@@ -1,4 +1,15 @@
-# FILE: /netlify.toml  (create in project ROOT)
+# FILE: /netlify.toml
+
 [build]
-  command = "npm run build"
+  base = ""
+  command = "npm run build:client"
   publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# (optional) if you use React Router and want refresh to work
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
