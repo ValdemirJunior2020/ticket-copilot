@@ -1,0 +1,337 @@
+/* FILE: /src/style.css */
+
+/* =========================
+   Ticket Copilot — Smooth Dark UI
+   Paste/replace ENTIRE file
+   ========================= */
+
+:root{
+  --bg0:#070A10;
+  --bg1:#0B1020;
+  --card:rgba(255,255,255,.06);
+  --card2:rgba(255,255,255,.08);
+  --line:rgba(255,255,255,.12);
+  --text:rgba(255,255,255,.92);
+  --muted:rgba(255,255,255,.70);
+  --muted2:rgba(255,255,255,.55);
+
+  --accent:#4CA0FA;
+  --accent2:#8B5CF6;
+  --ok:#22C55E;
+  --warn:#F59E0B;
+  --bad:#EF4444;
+
+  --shadow: 0 18px 55px rgba(0,0,0,.55);
+  --radius:16px;
+}
+
+/* Reset-ish */
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  color:var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  background:
+    radial-gradient(1200px 700px at 18% 10%, rgba(76,160,250,.18), transparent 55%),
+    radial-gradient(900px 600px at 85% 18%, rgba(139,92,246,.16), transparent 52%),
+    radial-gradient(700px 500px at 55% 88%, rgba(34,197,94,.10), transparent 55%),
+    linear-gradient(180deg, var(--bg1), var(--bg0));
+}
+
+/* Scrollbars */
+*::-webkit-scrollbar{ width:10px; height:10px; }
+*::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.15);
+  border-radius: 999px;
+  border: 2px solid rgba(0,0,0,.35);
+}
+*::-webkit-scrollbar-thumb:hover{ background: rgba(255,255,255,.22); }
+
+/* Common helpers (won’t break if unused) */
+.tc-page{
+  min-height:100vh;
+  padding: 24px 18px 60px;
+}
+.tc-shell{
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+/* Header */
+.tc-header{
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) + 2px);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+}
+.tc-title{
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+.tc-subtitle{
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.2;
+  max-width: 720px;
+}
+
+/* Cards / sections */
+.tc-card{
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+.tc-card + .tc-card{ margin-top: 14px; }
+.tc-cardHead{
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+}
+.tc-cardTitle{
+  font-weight: 750;
+  font-size: 14px;
+  color: var(--text);
+}
+.tc-hint{
+  color: var(--muted2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Textarea */
+.tc-notesWrap{ padding: 14px 16px 16px; }
+.tc-labelRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.tc-label{
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+}
+.tc-count{
+  font-size: 12px;
+  color: var(--muted);
+}
+.tc-count b{ color: var(--text); }
+
+textarea,
+.tc-textarea{
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.28);
+  color: var(--text);
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
+  line-height: 1.35;
+  font-size: 13px;
+}
+textarea:focus,
+.tc-textarea:focus{
+  border-color: rgba(76,160,250,.55);
+  box-shadow:
+    0 0 0 3px rgba(76,160,250,.18),
+    inset 0 0 0 1px rgba(0,0,0,.25);
+}
+
+/* Action bar */
+.tc-actions{
+  margin-top: 10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap: 10px;
+  align-items:center;
+  justify-content: space-between;
+}
+.tc-actionsLeft,
+.tc-actionsRight{
+  display:flex;
+  flex-wrap:wrap;
+  gap: 10px;
+  align-items:center;
+}
+.tc-tip{
+  color: var(--muted2);
+  font-size: 12px;
+}
+
+/* Buttons */
+button,
+.tc-btn{
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor:pointer;
+  transition: transform .08s ease, background .16s ease, border-color .16s ease, opacity .16s ease;
+  user-select:none;
+}
+button:hover,
+.tc-btn:hover{
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,255,255,.22);
+}
+button:active,
+.tc-btn:active{ transform: translateY(1px); }
+button:disabled,
+.tc-btn:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+/* Variants (use these classNames if your JSX already has them) */
+.tc-btn-primary{
+  background: linear-gradient(135deg, rgba(76,160,250,.95), rgba(139,92,246,.88));
+  border-color: rgba(76,160,250,.55);
+  box-shadow: 0 10px 25px rgba(76,160,250,.18);
+}
+.tc-btn-primary:hover{
+  background: linear-gradient(135deg, rgba(76,160,250,1), rgba(139,92,246,.95));
+}
+.tc-btn-success{
+  background: linear-gradient(135deg, rgba(34,197,94,.95), rgba(16,185,129,.85));
+  border-color: rgba(34,197,94,.45);
+}
+.tc-btn-ghost{
+  background: rgba(255,255,255,.03);
+}
+
+/* Results grid */
+.tc-grid{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding: 14px 16px 16px;
+}
+@media (min-width: 900px){
+  .tc-grid{ grid-template-columns: 1.3fr .9fr; }
+}
+.tc-row{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+@media (min-width: 900px){
+  .tc-row{ grid-template-columns: 1fr 1fr; }
+}
+
+.tc-field{
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.22);
+  border-radius: 14px;
+  padding: 12px 12px;
+}
+.tc-fieldLabel{
+  font-size: 11px;
+  color: var(--muted2);
+  letter-spacing: .25px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.tc-fieldValue{
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 650;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Macro / Draft areas */
+.tc-editor{
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.22);
+  border-radius: 14px;
+  overflow:hidden;
+}
+.tc-editorHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+.tc-editorTitle{
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 750;
+}
+.tc-editorBody{
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 120px;
+  max-height: 240px;
+  overflow:auto;
+}
+
+/* Copy button */
+.tc-copy{
+  padding: 7px 10px;
+  font-size: 11px;
+}
+
+/* Status / toast */
+.tc-toast{
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  z-index: 80;
+  min-width: 240px;
+  max-width: 360px;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font-size: 13px;
+}
+.tc-toast.tc-ok{ border-color: rgba(34,197,94,.35); }
+.tc-toast.tc-warn{ border-color: rgba(245,158,11,.35); }
+.tc-toast.tc-bad{ border-color: rgba(239,68,68,.35); }
+
+/* Links */
+a{ color: var(--accent); }
+a:hover{ color: rgba(76,160,250,.85); }
+
+/* Selection */
+::selection{ background: rgba(76,160,250,.30); }
+
+/* If you still have old plain elements, this makes them nicer */
+hr{
+  border: none;
+  border-top: 1px solid rgba(255,255,255,.10);
+  margin: 12px 0;
+}

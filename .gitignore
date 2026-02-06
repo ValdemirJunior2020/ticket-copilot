@@ -1,0 +1,82 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+node_modules/
+
+# Package manager cache/store
+.npm/
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Build output
+dist/
+build/
+out/
+coverage/
+.nyc_output/
+
+# Next.js
+.next/
+next-env.d.ts
+
+# Nuxt
+.nuxt/
+
+# Gatsby
+.cache/
+
+# Remix
+.remix/
+
+# SvelteKit
+.svelte-kit/
+
+# Serverless / deployment
+.serverless/
+.vercel/
+.netlify/
+
+# Environment files (keep templates if you use them)
+.env
+.env.*
+!.env.example
+!.env.template
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Bundler caches
+.eslintcache
+*.cache
+.parcel-cache/
+.vite/
+.turbo/
+
+# IDE/editor
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.tgz
+*.swp
