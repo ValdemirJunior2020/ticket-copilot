@@ -335,3 +335,87 @@ hr{
   border-top: 1px solid rgba(255,255,255,.10);
   margin: 12px 0;
 }
+/* FILE: /src/style.css  (PASTE THIS BLOCK at the bottom) */
+.tc-risk {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+.tc-riskHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.tc-riskTitle {
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  font-size: 14px;
+}
+
+.tc-riskSub {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.tc-riskGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 900px) {
+  .tc-riskGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tc-riskBadge {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 70, 70, 0.14), rgba(255, 70, 70, 0.06));
+  border: 1px solid rgba(255, 70, 70, 0.32);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 70, 70, 0.10) inset;
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+}
+
+.tc-riskBadge:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 70, 70, 0.46);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.40), 0 0 0 1px rgba(255, 70, 70, 0.14) inset, 0 0 18px rgba(255, 70, 70, 0.12);
+}
+
+.tc-riskBadge.is-med {
+  background: linear-gradient(135deg, rgba(255, 70, 70, 0.10), rgba(255, 70, 70, 0.04));
+  border-color: rgba(255, 70, 70, 0.24);
+}
+
+.tc-riskDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 70, 70, 0.95);
+  box-shadow: 0 0 0 4px rgba(255, 70, 70, 0.14), 0 0 16px rgba(255, 70, 70, 0.24);
+}
+
+.tc-riskLabel {
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.tc-riskDetail {
+  font-size: 12px;
+  line-height: 1.25;
+  opacity: 0.85;
+}

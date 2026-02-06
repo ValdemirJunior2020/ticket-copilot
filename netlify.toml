@@ -1,0 +1,4 @@
+# FILE: /netlify.toml  (create in project ROOT)
+[build]
+  command = "npm run build"
+  publish = "dist"

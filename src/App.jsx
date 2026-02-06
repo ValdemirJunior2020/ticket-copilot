@@ -1,7 +1,7 @@
 ﻿// FILE: C:\Users\Valdemir Goncalves\Desktop\Projetos-2026\ticket-copilot\src\App.jsx
 import React, { useMemo, useState } from "react";
 import "./style.css";
-
+import RiskFlags from "./components/RiskFlags";
 function extractFields(raw) {
   const text = String(raw || "");
 
@@ -157,12 +157,15 @@ export default function App() {
           </div>
         </div>
 
-        <textarea
-          className="tc-textarea"
-          value={raw}
-          onChange={(e) => setRaw(e.target.value)}
-          placeholder="Paste the Zendesk internal note / conversation log here..."
-        />
+    
+<textarea
+  className="tc-textarea"
+  value={raw}
+  onChange={(e) => setRaw(e.target.value)}
+  placeholder="Paste the Zendesk internal note / conversation log here..."
+/>
+
+<RiskFlags text={raw} />
 
         <div className="tc-actions">
           <button className="tc-btn" onClick={onAnalyze} disabled={!raw.trim()}>
