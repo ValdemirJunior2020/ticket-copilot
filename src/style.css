@@ -419,3 +419,33 @@ hr{
   line-height: 1.25;
   opacity: 0.85;
 }
+/* FILE: /src/style.css  (ADD these at the BOTTOM if you already have styles) */
+
+.tc-riskWrap{
+  margin-top:14px;
+  padding:14px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+}
+.tc-riskTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.tc-riskTitle{font-weight:800;letter-spacing:.2px}
+.tc-riskHint{opacity:.75;font-size:12px}
+.tc-riskGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width: 900px){.tc-riskGrid{grid-template-columns:1fr}}
+.tc-riskCard{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:12px 12px;
+  border-radius:14px;
+  border:1px solid rgba(255, 80, 80, .22);
+  background:linear-gradient(180deg, rgba(255, 80, 80, .10), rgba(0,0,0,.10));
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+.tc-riskDot{
+  width:10px;height:10px;border-radius:999px;
+  background:rgba(255, 80, 80, .95);
+  box-shadow:0 0 0 4px rgba(255, 80, 80, .20);
+  margin-top:3px;
+}
+.tc-riskName{font-weight:800;margin-bottom:2px}
+.tc-riskDesc{opacity:.85;font-size:12px;line-height:1.25}

@@ -1,265 +1,289 @@
-﻿// FILE: C:\Users\Valdemir Goncalves\Desktop\Projetos-2026\ticket-copilot\src\App.jsx
+﻿// FILE: /src/App.jsx
 import React, { useMemo, useState } from "react";
+import { extractFields } from "./lib/extract";
 import "./style.css";
-import RiskFlags from "./components/RiskFlags";
-function extractFields(raw) {
-  const text = String(raw || "");
 
-  const itinMatch =
-    text.match(/\b(?:H|ITIN|Itin(?:erary)?)\s*#?:?\s*([A-Z0-9-]{6,})\b/i) ||
-    text.match(/\b([A-Z]\d{6,})\b/);
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5050";
 
-  const itinerary = itinMatch?.[1] || "";
+const genId = () => (crypto?.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()));
 
-  const lower = text.toLowerCase();
-  const flags = [];
-  if (/\brefund\b/.test(lower)) flags.push("refund");
-  if (/\bchargeback\b|\bdispute\b/.test(lower)) flags.push("chargeback");
-  if (/\bcancel\b|\bcancellation\b/.test(lower)) flags.push("cancel");
-  if (/\bno[-\s]?show\b/.test(lower)) flags.push("no-show");
+function detectRiskFlags(text) {
+  const t = String(text || "");
+  const out = [];
 
-  let issue = "";
-  if (flags.includes("chargeback")) issue = "Chargeback / Dispute";
-  else if (flags.includes("refund")) issue = "Refund Request";
-  else if (flags.includes("cancel")) issue = "Cancellation";
-  else issue = "General Inquiry";
+  const hasPhone = /(?:\+?1[\s.-]?)?(?:\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}\b/.test(t);
+  const hasCC = /\b(?:\d[ -]*?){13,16}\b/.test(t) && /\b(?:visa|mastercard|amex|discover)\b/i.test(t) === false;
+  const refundPromise = /\b(refund (is|will be|has been) (processed|approved|issued)|you will receive a refund|we will refund)\b/i.test(t);
 
-  const guestMatch =
-    text.match(/\bGuest[:\s]+([^\n\r]+)\b/i) ||
-    text.match(/\bName[:\s]+([^\n\r]+)\b/i);
-  const guest = (guestMatch?.[1] || "").trim();
+  if (refundPromise) out.push({ key: "refund_promise", title: "Refund promise risk", desc: "Avoid confirming a refund unless proven." });
+  if (hasPhone) out.push({ key: "phone", title: "Phone number detected", desc: "Be careful copying/exporting." });
+  if (hasCC) out.push({ key: "cc", title: "Possible card number detected", desc: "Remove payment data before saving/exporting." });
 
-  const hotelMatch = text.match(/\bHotel[:\s]+([^\n\r]+)\b/i);
-  const hotel = (hotelMatch?.[1] || "").trim();
+  if (/\b(call review|recording|call record|no record for the call)\b/i.test(t)) {
+    out.push({ key: "callreview", title: "Call recording / review requested", desc: "May require verification steps." });
+  }
 
-  const macro = {
-    title:
-      issue === "Refund Request"
-        ? "Refund Request → In Review (No Promise)"
-        : issue === "Chargeback / Dispute"
-        ? "Chargeback → Received (In Review)"
-        : issue === "Cancellation"
-        ? "Cancellation → Confirm Details"
-        : "General → Acknowledge + Next Steps",
-  };
-
-  const macroPreview = `Dear [Name],
-
-This response is related to your reservation for Itinerary # ${itinerary || "[ITIN]"}.
-
-We are in the process of reviewing your request. We will provide an update as soon as possible. If approved, refund timing depends on the payment method and bank processing.
-
-Sincerely,
-Travel Support`;
-
-  const localDraft = `Dear ${guest || "[Name]"},\n\nThis response is related to your reservation for Itinerary # ${
-    itinerary || "[ITIN]"
-  }.\n\nThanks for contacting us. We’re reviewing your request and will follow up by email as soon as possible. If approved, refund timing depends on the payment method/bank processing.\n\nSincerely,\nTravel Support`;
-
-  return {
-    fields: { itinerary, issue, guest, hotel, flags },
-    macro,
-    macroPreview,
-    localDraft,
-  };
+  return out;
 }
 
 export default function App() {
   const [raw, setRaw] = useState("");
-  const [analysis, setAnalysis] = useState(null);
+  const [fields, setFields] = useState({ itinerary: "-", issue: "-", guest: "-", hotel: "-", flags: "-" });
+
+  const [macroSuggestion, setMacroSuggestion] = useState("-");
+  const [macroPreview, setMacroPreview] = useState("");
   const [draft, setDraft] = useState("");
-  const [aiBusy, setAiBusy] = useState(false);
+  const [aiDraft, setAiDraft] = useState("");
+  const [busyAI, setBusyAI] = useState(false);
   const [saved, setSaved] = useState([]);
+  const [status, setStatus] = useState("Ready");
 
-  const chars = useMemo(() => raw.length, [raw]);
+  const riskFlags = useMemo(() => detectRiskFlags(raw), [raw]);
+  const chars = raw.length;
 
-  function onAnalyze() {
-    const a = extractFields(raw);
-    setAnalysis(a);
-    setDraft(a.localDraft);
+  function analyze() {
+    const f = extractFields(raw);
+    setFields(f);
+
+    // Simple macro suggestion based on issue/flags
+    let sug = "General → In Review";
+    if (/chargeback/i.test(f.issue) || /chargeback/i.test(f.flags)) sug = "Chargeback → In Review (No Promise)";
+    else if (/refund/i.test(f.issue) || /refund/i.test(f.flags)) sug = "Refund Request → In Review (No Promise)";
+    else if (/call recording|review/i.test(f.issue) || /call-review/i.test(f.flags)) sug = "Call Review → Verification Needed";
+
+    setMacroSuggestion(sug);
+
+    // Macro preview template (no AI)
+    const itin = f.itinerary !== "-" ? f.itinerary : "[ITIN]";
+    const name = f.guest !== "-" ? f.guest : "[Name]";
+    const preview = `Dear ${name},
+
+This response is related to your reservation for Itinerary # ${itin}.
+
+We are reviewing your request and will provide an update as soon as possible. If approved, timing depends on the payment method and bank processing.
+
+Sincerely,
+Travel Support`;
+    setMacroPreview(preview);
+
+    // Local draft (still editable)
+    const localDraft = `Dear ${name},
+
+This response is related to your reservation for Itinerary # ${itin}.
+
+Thanks for contacting us. We’re reviewing your request and will follow up by email as soon as possible. If approved, refund timing depends on the payment method/bank processing.
+
+Sincerely,
+Travel Support`;
+    setDraft(localDraft);
+
+    setStatus("Analyzed");
   }
 
-  async function onOpenAiDraft() {
+  function clearAll() {
+    setRaw("");
+    setFields({ itinerary: "-", issue: "-", guest: "-", hotel: "-", flags: "-" });
+    setMacroSuggestion("-");
+    setMacroPreview("");
+    setDraft("");
+    setAiDraft("");
+    setStatus("Cleared");
+  }
+
+  async function openAiDraft() {
+    setBusyAI(true);
+    setStatus("Generating AI draft...");
     try {
-      setAiBusy(true);
-      const res = await fetch("http://localhost:5050/api/draft", {
+      const res = await fetch(`${API_BASE}/api/draft`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           raw,
-          analysis,
+          extracted: fields,
+          currentDraft: draft || macroPreview,
         }),
       });
 
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || "OpenAI Draft Error");
-      if (data?.draft) setDraft(data.draft);
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      setAiDraft(String(data?.draft || "").trim());
+      setStatus("AI draft ready");
     } catch (e) {
-      alert(String(e?.message || e));
+      setStatus(`OpenAI Draft Error: ${e?.message || "Failed"}`);
     } finally {
-      setAiBusy(false);
+      setBusyAI(false);
     }
   }
 
-  function onSave() {
-    if (!analysis) return;
+  function saveRow() {
+    if (!raw.trim()) return;
     const row = {
+      id: genId(),
       ts: new Date().toISOString(),
-      itinerary: analysis.fields.itinerary,
-      issue: analysis.fields.issue,
-      guest: analysis.fields.guest,
-      hotel: analysis.fields.hotel,
-      flags: (analysis.fields.flags || []).join(", "),
-      draft,
+      itinerary: fields.itinerary,
+      issue: fields.issue,
+      guest: fields.guest,
+      hotel: fields.hotel,
+      flags: fields.flags,
+      macroSuggestion,
+      draft: aiDraft || draft || "",
+      raw,
     };
-    setSaved((prev) => [row, ...prev]);
+    setSaved((p) => [row, ...p]);
+    setStatus("Saved");
   }
 
-  function onExportExcel() {
-    // Simple CSV export (opens in Excel)
-    const rows = saved;
-    if (!rows.length) return;
+  async function exportExcel() {
+    setStatus("Exporting...");
+    try {
+      const res = await fetch(`${API_BASE}/api/export`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rows: saved }),
+      });
+      if (!res.ok) throw new Error(await res.text());
 
-    const header = Object.keys(rows[0]);
-    const csv = [
-      header.join(","),
-      ...rows.map((r) =>
-        header
-          .map((k) => `"${String(r[k] ?? "").replaceAll('"', '""')}"`)
-          .join(",")
-      ),
-    ].join("\n");
-
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "ticket-copilot-export.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ticket-copilot-export.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      setStatus("Exported");
+    } catch (e) {
+      setStatus(`Export Error: ${e?.message || "Failed"}`);
+    }
   }
 
   return (
     <div className="tc-page">
       <header className="tc-header">
         <div className="tc-title">Ticket Copilot</div>
-        <div className="tc-sub">
-          Paste Zendesk notes → extract fields → suggest macro → (optional) OpenAI draft → save → export.
-        </div>
+        <div className="tc-sub">Paste Zendesk notes → extract fields → suggest macro → (optional) OpenAI draft → save → export.</div>
       </header>
 
       <section className="tc-card">
-        <div className="tc-row">
+        <div className="tc-cardHead">
           <div className="tc-cardTitle">Paste ticket notes</div>
-          <div className="tc-rightHint">
-            <span className="tc-badge">Chars: {chars}</span>
-            <span className="tc-muted">Keep it clean — remove credit card numbers.</span>
+          <div className="tc-cardMeta">
+            <span className="tc-pill">Chars: {chars}</span>
+            <span className="tc-pill">Keep it clean — remove credit card numbers.</span>
           </div>
         </div>
 
-    
-<textarea
-  className="tc-textarea"
-  value={raw}
-  onChange={(e) => setRaw(e.target.value)}
-  placeholder="Paste the Zendesk internal note / conversation log here..."
-/>
+        <textarea
+          className="tc-textarea"
+          value={raw}
+          onChange={(e) => setRaw(e.target.value)}
+          placeholder="Paste the Zendesk internal note / conversation log here..."
+        />
 
-<RiskFlags text={raw} />
+        {!!riskFlags.length && (
+          <div className="tc-riskWrap">
+            <div className="tc-riskTop">
+              <div className="tc-riskTitle">Risk Flags</div>
+              <div className="tc-riskHint">Auto-detected warnings from pasted notes</div>
+            </div>
+
+            <div className="tc-riskGrid">
+              {riskFlags.map((r) => (
+                <div key={r.key} className="tc-riskCard">
+                  <div className="tc-riskDot" />
+                  <div className="tc-riskBody">
+                    <div className="tc-riskName">{r.title}</div>
+                    <div className="tc-riskDesc">{r.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="tc-actions">
-          <button className="tc-btn" onClick={onAnalyze} disabled={!raw.trim()}>
-            Analyze
-          </button>
+          <button className="tc-btn" onClick={analyze}>Analyze</button>
+          <button className="tc-btn tc-btnGhost" onClick={clearAll}>Clear</button>
 
-          <button
-            className="tc-btn tc-btnGhost"
-            onClick={() => {
-              setRaw("");
-              setAnalysis(null);
-              setDraft("");
-            }}
-          >
-            Clear
-          </button>
-
-          <div className="tc-spacer" />
-
-          <button className="tc-btn tc-btnAi" onClick={onOpenAiDraft} disabled={!raw.trim() || aiBusy}>
-            {aiBusy ? "Drafting..." : "OpenAI Draft Reply"}
-          </button>
-
-          <button className="tc-btn tc-btnSave" onClick={onSave} disabled={!analysis}>
-            Save
-          </button>
-
-          <button className="tc-btn tc-btnExport" onClick={onExportExcel} disabled={!saved.length}>
-            Export Excel
-          </button>
+          <div className="tc-actionsRight">
+            <button className="tc-btn tc-btnBlue" onClick={openAiDraft} disabled={busyAI || !raw.trim()}>
+              {busyAI ? "Generating..." : "OpenAI Draft Reply"}
+            </button>
+            <button className="tc-btn tc-btnGreen" onClick={saveRow} disabled={!raw.trim()}>
+              Save
+            </button>
+            <button className="tc-btn tc-btnGhost" onClick={exportExcel} disabled={!saved.length}>
+              Export Excel
+            </button>
+          </div>
         </div>
 
-        <div className="tc-hint">Tip: OpenAI is optional — local draft already works.</div>
+        <div className="tc-tipRow">
+          <div className="tc-tip">Tip: OpenAI is optional — local draft already works.</div>
+          <div className="tc-status">{status}</div>
+        </div>
       </section>
 
       <section className="tc-card">
-        <div className="tc-cardTitle">Results</div>
+        <div className="tc-cardHead">
+          <div className="tc-cardTitle">Results</div>
+        </div>
 
         <div className="tc-grid">
-          <div className="tc-field">
-            <div className="tc-label">Itinerary</div>
-            <div className="tc-value">{analysis?.fields?.itinerary || "-"}</div>
+          <div className="tc-kv">
+            <div className="tc-k">Itinerary</div>
+            <div className="tc-v">{fields.itinerary}</div>
           </div>
-
-          <div className="tc-field">
-            <div className="tc-label">Issue</div>
-            <div className="tc-value">{analysis?.fields?.issue || "-"}</div>
+          <div className="tc-kv">
+            <div className="tc-k">Issue</div>
+            <div className="tc-v">{fields.issue}</div>
           </div>
-
-          <div className="tc-field">
-            <div className="tc-label">Guest</div>
-            <div className="tc-value">{analysis?.fields?.guest || "-"}</div>
+          <div className="tc-kv">
+            <div className="tc-k">Guest</div>
+            <div className="tc-v">{fields.guest}</div>
           </div>
-
-          <div className="tc-field">
-            <div className="tc-label">Hotel</div>
-            <div className="tc-value">{analysis?.fields?.hotel || "-"}</div>
+          <div className="tc-kv">
+            <div className="tc-k">Hotel</div>
+            <div className="tc-v">{fields.hotel}</div>
           </div>
-
-          <div className="tc-field">
-            <div className="tc-label">Flags</div>
-            <div className="tc-value">{(analysis?.fields?.flags || []).join(", ") || "-"}</div>
+          <div className="tc-kv">
+            <div className="tc-k">Flags</div>
+            <div className="tc-v">{fields.flags}</div>
           </div>
-
-          <div className="tc-field">
-            <div className="tc-label">Macro suggestion</div>
-            <div className="tc-value">{analysis?.macro?.title || "-"}</div>
+          <div className="tc-kv">
+            <div className="tc-k">Macro suggestion</div>
+            <div className="tc-v">{macroSuggestion}</div>
           </div>
         </div>
 
         <div className="tc-split">
-          <div className="tc-col">
-            <div className="tc-labelRow">
-              <span className="tc-label">Macro preview</span>
-              <button className="tc-copy" onClick={() => navigator.clipboard.writeText(analysis?.macroPreview || "")}>
+          <div className="tc-panel">
+            <div className="tc-panelHead">
+              <div className="tc-panelTitle">Macro preview</div>
+              <button className="tc-miniBtn" onClick={() => navigator.clipboard.writeText(macroPreview || "")} disabled={!macroPreview}>
                 Copy
               </button>
             </div>
-            <textarea className="tc-textareaSmall" readOnly value={analysis?.macroPreview || ""} />
+            <textarea className="tc-box" readOnly value={macroPreview} placeholder="(Analyze to generate)" />
           </div>
 
-          <div className="tc-col">
-            <div className="tc-labelRow">
-              <span className="tc-label">Draft reply</span>
-              <button className="tc-copy" onClick={() => navigator.clipboard.writeText(draft || "")}>
+          <div className="tc-panel">
+            <div className="tc-panelHead">
+              <div className="tc-panelTitle">Draft reply</div>
+              <button className="tc-miniBtn" onClick={() => navigator.clipboard.writeText((aiDraft || draft || "") + "")} disabled={!(aiDraft || draft)}>
                 Copy
               </button>
             </div>
             <textarea
-              id="draft-reply-box"
-              className="tc-textareaSmall"
-              value={draft}
+              className="tc-box"
+              value={aiDraft || draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Analyze first, then click OpenAI Draft Reply (optional)..."
+              placeholder="(Analyze to generate local draft, or click OpenAI Draft Reply)"
             />
           </div>
         </div>
