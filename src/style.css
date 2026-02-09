@@ -510,3 +510,66 @@ hr{
 @keyframes tcspin{
   to{ transform: rotate(360deg); }
 }
+/* ✅ FILE: /src/style.css */
+
+/* ===== Bigger UI text ===== */
+.tc-page{
+  font-size: 16px;              /* base size */
+  line-height: 1.45;
+}
+
+.tc-title{
+  font-size: 28px !important;
+  font-weight: 800;
+}
+
+.tc-sub{
+  font-size: 14px;
+  opacity: .9;
+}
+
+/* section labels like "Zendesk Notes", "Extracted", etc */
+.tc-label{
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+/* textarea typing size */
+.tc-textarea{
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* Extracted field values */
+.tc-kv .tc-k span{
+  font-size: 12px;
+  opacity: .85;
+}
+.tc-kv .tc-k strong{
+  font-size: 18px;
+}
+
+/* drafts (pre blocks) */
+.tc-draft{
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+/* buttons */
+.tc-btn{
+  font-size: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+}
+
+/* risk flags pills */
+.tc-flag{
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+/* status line */
+.tc-status{
+  font-size: 14px;
+}
